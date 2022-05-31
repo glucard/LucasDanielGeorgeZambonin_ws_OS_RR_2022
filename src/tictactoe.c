@@ -1,11 +1,13 @@
 #include "tictactoe.h"
 
+char empty = '-';
+
 TicTacToe* createTicTacToe(){
     TicTacToe* t = (TicTacToe*)malloc(sizeof(TicTacToe));
     int i, j;
     for (i = 0; i < 3; i++)
         for (j = 0; j < 3; j++)
-            t->table[i][j] = '-';
+            t->table[i][j] = empty;
     return t;
 }
 
@@ -22,3 +24,45 @@ void printTicTacToe(TicTacToe* t){
     }
 }
 
+int play(TicTacToe* t, int i, int j, char mark){
+    if (t->table[i][j] != empty)
+        return 0;
+    
+    t->table[i][j] = mark;
+    return 1;
+}
+
+int isWin(TicTacToe* t, char mark){
+    int i, j;
+
+    // verificar
+    
+    // vertical
+    for (i = 0; i < 3; i++)
+        if(t->table[i][0] == mark && t->table[i][1] == mark && t->table[i][2] == mark)
+            return 1;
+    
+    // horizontal
+    for (j = 0; j < 3; j++)
+        if(t->table[0][j] == mark && t->table[1][j] == mark && t->table[2][j] == mark)
+            return 1;
+    
+    // diagonal principal e secundaria
+    if(t->table[0][0] == mark && t->table[1][1] == mark && t->table[2][2] == mark)
+        return 1;
+    if(t->table[0][2] == mark && t->table[1][1] == mark && t->table[2][0] == mark)
+        return 1;
+    
+
+    // não ganhou
+    return 0;
+}
+
+int isFull(TicTacToe* t){
+    int i, j;
+    for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            if(t->table[i][j] == empty)
+                return 0;
+    return 1;
+}
