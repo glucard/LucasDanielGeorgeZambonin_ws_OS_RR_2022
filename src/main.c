@@ -5,6 +5,7 @@
 
 char marks[2] = {'x', 'o'};
 int turn = 0;
+int finished = 0;
 
 typedef struct player_thread_args {
     TicTacToe *t;
@@ -23,7 +24,7 @@ void* player_thread(void* v_args){
     while(1){
         //printf("%c", marks[mark]);
         pthread_mutex_lock(&lock);
-        if(isFull(t)){
+        if(isFull(t) || finished){
             pthread_mutex_unlock(&lock);
             break;
         }
@@ -33,15 +34,22 @@ void* player_thread(void* v_args){
             while(!play(t, y, x, marks[mark])){
                 y = rand() % 3;
                 x = rand() % 3;
-                if(isFull(t)){
-                    break;
-                }
             }
             printf("\n");
             printTicTacToe(t);
             turn = !turn;
         }
+        if(someoneWin(t)) {
+            finished = 1;
+        }
         pthread_mutex_unlock(&lock);
+    }
+    if (!finished){
+        printf("Deu velha da lancha\n");
+    } else if (isWin(t, marks[mark])) {
+        printf("%c GANHOU !!!\n", marks[mark]);
+    } else {
+        printf("%c PERDEU !!!\n", marks[mark]);
     }
 
 }
@@ -65,7 +73,7 @@ int main(){
 
     
     printTicTacToe(t);
-    
+
     pthread_create(&t_player1, NULL, &player_thread, &args1);
     pthread_create(&t_player2, NULL, &player_thread, &args2);
     pthread_join(t_player1, NULL);

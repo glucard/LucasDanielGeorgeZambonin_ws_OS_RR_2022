@@ -14,5 +14,6 @@ void printTicTacToe(TicTacToe* t);
 int play(TicTacToe* t, int i, int j, char mark);
 int isWin(TicTacToe* t, char mark);
 int isFull(TicTacToe* t);
+int someoneWin(TicTacToe* t);
 
 #endif
