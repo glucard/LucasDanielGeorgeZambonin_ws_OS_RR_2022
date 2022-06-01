@@ -1,33 +1,76 @@
 #include "tictactoe.h"
-#include<time.h>
+#include <time.h>
+#include <pthread.h>
 
-char marks[2] = {'o', 'x'};
 
-int main(){
-    TicTacToe* t = createTicTacToe();
-    srand(time(NULL));
-    int turn = 1, count = 0;
+char marks[2] = {'x', 'o'};
+int turn = 0;
+
+typedef struct player_thread_args {
+    TicTacToe *t;
+    int mark;
+} PlayerThreadArgs;
+
+pthread_mutex_t lock;
+
+void* player_thread(void* v_args){
+    PlayerThreadArgs* args = (PlayerThreadArgs*)v_args;
+    TicTacToe* t = args->t;
+    int mark = args->mark;
+    
+
     int x, y;
     while(1){
-        printTicTacToe(t);
-        printf("--- %c turn ---\n", marks[turn]);
-        // scanf("%d %d", &y, &x);
-        y = rand() % 3;
-        x = rand() % 3;
-        while(!play(t, y, x, marks[turn])){
+        //printf("%c", marks[mark]);
+        pthread_mutex_lock(&lock);
+        if(isFull(t)){
+            pthread_mutex_unlock(&lock);
+            break;
+        }
+        if(turn == mark){
             y = rand() % 3;
             x = rand() % 3;
+            while(!play(t, y, x, marks[mark])){
+                y = rand() % 3;
+                x = rand() % 3;
+                if(isFull(t)){
+                    break;
+                }
+            }
+            printf("\n");
+            printTicTacToe(t);
+            turn = !turn;
         }
-        if(isWin(t, marks[turn]))
-            break;
-        if(isFull(t)){
-            printf("Deu Velha");
-            return 0;
-        }
-        turn = !turn;
+        pthread_mutex_unlock(&lock);
     }
+
+}
+
+int main(){
+
+    if (pthread_mutex_init(&lock, NULL) != 0)
+        return 1;
+    srand(time(NULL));
+
+    TicTacToe* t = createTicTacToe();
+
+    pthread_t t_player1, t_player2;
+    PlayerThreadArgs args1, args2;
+    int turn = 1;
+
+    args1.t = t;
+    args1.mark = 0;
+    args2.t = t;
+    args2.mark = 1;
+
+    
     printTicTacToe(t);
-    printf("%c ganhou!!!\n", marks[turn]);
+    
+    pthread_create(&t_player1, NULL, &player_thread, &args1);
+    pthread_create(&t_player2, NULL, &player_thread, &args2);
+    pthread_join(t_player1, NULL);
+    pthread_join(t_player2, NULL);
+    
     destroyTicTacToe(t);
     
     return 0;
