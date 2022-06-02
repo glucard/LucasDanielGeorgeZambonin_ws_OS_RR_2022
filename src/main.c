@@ -1,7 +1,7 @@
 #include "tictactoe.h"
 #include <time.h>
 #include <pthread.h>
-
+#include <unistd.h>
 
 char marks[2] = {'x', 'o'};
 int turn = 0;
@@ -23,17 +23,19 @@ void* player_thread(void* v_args){
     TicTacToe* t = args->t;
     int mark = args->mark;
     
-
     int x, y;
 
     // loop principal da thread 
     while(1){
         //printf("%c", marks[mark]);
+        printf("Thread %c aguardando na fila.\n", marks[mark]);
         pthread_mutex_lock(&lock);
 
         // caso estiver cheio, ou a flag finished estiver True destrava
         // e para o loop principal da thread
+        printf("Thread %c locking.\n", marks[mark]);
         if(isFull(t) || finished){
+            printf("Thread %c unlocking.\n\n\n", marks[mark]);
             pthread_mutex_unlock(&lock);
             break;
         }
@@ -54,6 +56,15 @@ void* player_thread(void* v_args){
 
             // apos jogar inverte o turno.
             turn = !turn;
+            if(someoneWin(t)) {
+                finished = 1;
+            }
+
+            // sleep com proposito de facilitar o entendimento na execução
+            printf("Sleeping 1s\n");
+            sleep(1);
+        } else {
+            printf("\t >> Não é a vez de Thread %c.\n", marks[mark]);
         }
 
         // caso alguem ganhar, set a flag finished em True
@@ -62,6 +73,7 @@ void* player_thread(void* v_args){
         }
 
         // destrava
+        printf("Thread %c unlocking.\n\n\n", marks[mark]);
         pthread_mutex_unlock(&lock);
     }
     // quando sair do loop principal, print a condição final do jogo
