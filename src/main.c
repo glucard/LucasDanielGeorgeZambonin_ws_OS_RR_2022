@@ -1,7 +1,7 @@
 #include "tictactoe.h"
 #include <time.h>
 #include <pthread.h>
-
+#include <unistd.h>
 
 char marks[2] = {'x', 'o'};
 int turn = 0;
@@ -23,8 +23,11 @@ void* player_thread(void* v_args){
     int x, y;
     while(1){
         //printf("%c", marks[mark]);
+        printf("Thread %c aguardando na fila.\n", marks[mark]);
         pthread_mutex_lock(&lock);
+        printf("Thread %c locking.\n", marks[mark]);
         if(isFull(t) || finished){
+            printf("Thread %c unlocking.\n\n\n", marks[mark]);
             pthread_mutex_unlock(&lock);
             break;
         }
@@ -38,10 +41,16 @@ void* player_thread(void* v_args){
             printf("\n");
             printTicTacToe(t);
             turn = !turn;
+            if(someoneWin(t)) {
+                finished = 1;
+            }
+            printf("Sleeping 1s\n");
+            sleep(1);
+        } else {
+            printf("\t >> Não é a vez de Thread %c.\n", marks[mark]);
         }
-        if(someoneWin(t)) {
-            finished = 1;
-        }
+
+        printf("Thread %c unlocking.\n\n\n", marks[mark]);
         pthread_mutex_unlock(&lock);
     }
     if (!finished){
