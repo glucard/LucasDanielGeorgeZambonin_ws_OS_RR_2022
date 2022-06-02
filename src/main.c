@@ -7,6 +7,8 @@ char marks[2] = {'x', 'o'};
 int turn = 0;
 int finished = 0;
 
+
+// strutura a ser usada como forma de passar argumentos para a função player_thread
 typedef struct player_thread_args {
     TicTacToe *t;
     int mark;
@@ -15,35 +17,54 @@ typedef struct player_thread_args {
 pthread_mutex_t lock;
 
 void* player_thread(void* v_args){
+
+    // "convertendo" argumentos do ponteiro vazio.
     PlayerThreadArgs* args = (PlayerThreadArgs*)v_args;
     TicTacToe* t = args->t;
     int mark = args->mark;
     
 
     int x, y;
+
+    // loop principal da thread 
     while(1){
         //printf("%c", marks[mark]);
         pthread_mutex_lock(&lock);
+
+        // caso estiver cheio, ou a flag finished estiver True destrava
+        // e para o loop principal da thread
         if(isFull(t) || finished){
             pthread_mutex_unlock(&lock);
             break;
         }
+
+        // se o turno for igual a mark da thread ('x' = 0 e 'o' = 1), então é a
+        // vez dessa thread jogar.
         if(turn == mark){
             y = rand() % 3;
             x = rand() % 3;
+            // enquanto o movimento for invalido (espaço já ocupado), tenta novamente
+            // com diferentes coordenadas. 
             while(!play(t, y, x, marks[mark])){
                 y = rand() % 3;
                 x = rand() % 3;
             }
             printf("\n");
             printTicTacToe(t);
+
+            // apos jogar inverte o turno.
             turn = !turn;
         }
+
+        // caso alguem ganhar, set a flag finished em True
         if(someoneWin(t)) {
             finished = 1;
         }
+
+        // destrava
         pthread_mutex_unlock(&lock);
     }
+    // quando sair do loop principal, print a condição final do jogo
     if (!finished){
         printf("Deu velha da lancha\n");
     } else if (isWin(t, marks[mark])) {
