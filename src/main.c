@@ -27,54 +27,52 @@ void* player_thread(void* v_args){
 
     // loop principal da thread 
     while(1){
-        //printf("%c", marks[mark]);
-        printf("Thread %c aguardando na fila.\n", marks[mark]);
-        pthread_mutex_lock(&lock);
-
-        // caso estiver cheio, ou a flag finished estiver True destrava
-        // e para o loop principal da thread
-        printf("Thread %c locking.\n", marks[mark]);
-        if(isFull(t) || finished){
-            printf("Thread %c unlocking.\n\n\n", marks[mark]);
-            pthread_mutex_unlock(&lock);
+        
+        if(finished){
             break;
         }
 
         // se o turno for igual a mark da thread ('x' = 0 e 'o' = 1), então é a
         // vez dessa thread jogar.
         if(turn == mark){
-            y = rand() % 3;
-            x = rand() % 3;
+
             // enquanto o movimento for invalido (espaço já ocupado), tenta novamente
             // com diferentes coordenadas. 
-            while(!play(t, y, x, marks[mark])){
+            y = rand() % 3;
+            x = rand() % 3;
+            while(!verifyPlay(t, y, x, marks[mark])){
                 y = rand() % 3;
                 x = rand() % 3;
             }
-            printf("\n");
-            printTicTacToe(t);
 
-            // apos jogar inverte o turno.
-            turn = !turn;
-            if(someoneWin(t)) {
-                finished = 1;
+            if(finished) {
+                break;
+            } else {
+                // joga e inverte o turno
+
+                pthread_mutex_lock(&lock);
+                play(t, y, x, marks[mark]);
+                pthread_mutex_unlock(&lock);
+
+                printf("\n");
+                printTicTacToe(t);
+                turn = !turn;
             }
 
             // sleep com proposito de facilitar o entendimento na execução
-            printf("Sleeping 1s\n");
-            sleep(1);
         } else {
-            printf("\t >> Não é a vez de Thread %c.\n", marks[mark]);
+            
+            pthread_mutex_lock(&lock);
+            if(someoneWin(t) || isFull(t)) {
+                finished = 1;
+            }
+            pthread_mutex_unlock(&lock);
         }
 
         // caso alguem ganhar, set a flag finished em True
         if(someoneWin(t)) {
             finished = 1;
         }
-
-        // destrava
-        printf("Thread %c unlocking.\n\n\n", marks[mark]);
-        pthread_mutex_unlock(&lock);
     }
     // quando sair do loop principal, print a condição final do jogo
     if (!finished){

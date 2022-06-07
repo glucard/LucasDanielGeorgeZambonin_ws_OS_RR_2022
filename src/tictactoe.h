@@ -11,6 +11,7 @@ typedef struct tictactoe {
 TicTacToe* createTicTacToe();
 void destroyTicTacToe(TicTacToe* t);
 void printTicTacToe(TicTacToe* t);
+int verifyPlay(TicTacToe* t, int i, int j, char mark);
 int play(TicTacToe* t, int i, int j, char mark);
 int isWin(TicTacToe* t, char mark);
 int isFull(TicTacToe* t);

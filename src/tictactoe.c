@@ -32,8 +32,14 @@ void printTicTacToe(TicTacToe* t){
     }
 }
 
-int play(TicTacToe* t, int i, int j, char mark){
+int verifyPlay(TicTacToe* t, int i, int j, char mark){
     if (t->table[i][j] != empty)
+        return 0;
+    return 1;
+}
+
+int play(TicTacToe* t, int i, int j, char mark){
+    if (!verifyPlay(t, i, j, mark))
         return 0;
     
     t->table[i][j] = mark;
