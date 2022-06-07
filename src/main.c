@@ -8,7 +8,6 @@ int turn = 0;
 int finished = 0;
 int is_finished_verified = 1;
 
-
 // strutura a ser usada como forma de passar argumentos para a função player_thread
 typedef struct player_thread_args {
     TicTacToe *t;
@@ -18,25 +17,20 @@ typedef struct player_thread_args {
 pthread_mutex_t lock;
 
 void* player_thread(void* v_args){
-
     // "convertendo" argumentos do ponteiro vazio.
     PlayerThreadArgs* args = (PlayerThreadArgs*)v_args;
     TicTacToe* t = args->t;
     int mark = args->mark;
-    
-    int x, y;
 
+    int x, y;
     // loop principal da thread 
     while(1){
-        
         if(finished){
             break;
         }
-
         // se o turno for igual a mark da thread ('x' = 0 e 'o' = 1), então é a
         // vez dessa thread jogar.
         if(turn == mark){
-
             // enquanto o movimento for invalido (espaço já ocupado), tenta novamente
             // com diferentes coordenadas. 
             y = rand() % 3;
@@ -45,21 +39,16 @@ void* player_thread(void* v_args){
                 y = rand() % 3;
                 x = rand() % 3;
             }
-
             if(finished) {
                 break;
             } else {
                 // joga e inverte o turno
-
                 pthread_mutex_lock(&lock);
                 play(t, y, x, marks[mark]);
                 is_finished_verified = 0;
                 pthread_mutex_unlock(&lock);
-
-                printf("\n");
                 turn = !turn;
             }
-
             // sleep com proposito de facilitar o entendimento na execução
         } else {
             if (!is_finished_verified){
@@ -67,12 +56,12 @@ void* player_thread(void* v_args){
                 if(someoneWin(t) || isFull(t)) {
                     finished = 1;
                 }
+                printf("\n");
                 printTicTacToe(t);
                 is_finished_verified = 1;
                 pthread_mutex_unlock(&lock);
             }
         }
-
         // caso alguem ganhar, set a flag finished em True
         if(someoneWin(t)) {
             finished = 1;
@@ -89,14 +78,11 @@ void* player_thread(void* v_args){
 
 }
 
-
 void noThreadPlay(){
-    
     TicTacToe* t = createTicTacToe();
     int npt_finished = 0;
     int x, y;
     int turn = 0;
-
     while(!npt_finished){
         y = rand() % 3;
         x = rand() % 3;
@@ -118,9 +104,7 @@ void noThreadPlay(){
     } else {
         printf("%c PERDEU !!!\n", marks[1]);
     }
-
     destroyTicTacToe(t);
-    
 }
 
 int main(){
@@ -133,18 +117,14 @@ int main(){
     srand(time(NULL));
 
     TicTacToe* t = createTicTacToe();
+    int turn = 1;
 
     pthread_t t_player1, t_player2;
     PlayerThreadArgs args1, args2;
-    int turn = 1;
-
     args1.t = t;
     args1.mark = 0;
     args2.t = t;
     args2.mark = 1;
-
-    
-    printTicTacToe(t);
 
     pthread_create(&t_player1, NULL, &player_thread, &args1);
     pthread_create(&t_player2, NULL, &player_thread, &args2);
