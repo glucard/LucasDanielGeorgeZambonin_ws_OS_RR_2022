@@ -38,18 +38,15 @@ void* player_thread(void* v_args){
             while(!verifyPlay(t, y, x, marks[mark])){
                 y = rand() % 3;
                 x = rand() % 3;
+                if (finished) break;
             }
-            if(finished) {
-                break;
-            } else {
-                // joga e inverte o turno
-                pthread_mutex_lock(&lock);
+            pthread_mutex_lock(&lock);
+            if (is_finished_verified && !finished){
                 play(t, y, x, marks[mark]);
                 is_finished_verified = 0;
-                pthread_mutex_unlock(&lock);
                 turn = !turn;
             }
-            // sleep com proposito de facilitar o entendimento na execução
+            pthread_mutex_unlock(&lock);
         } else {
             if (!is_finished_verified){
                 pthread_mutex_lock(&lock);
@@ -61,10 +58,6 @@ void* player_thread(void* v_args){
                 is_finished_verified = 1;
                 pthread_mutex_unlock(&lock);
             }
-        }
-        // caso alguem ganhar, set a flag finished em True
-        if(someoneWin(t)) {
-            finished = 1;
         }
     }
     // quando sair do loop principal, print a condição final do jogo
@@ -102,7 +95,7 @@ void noThreadPlay(){
     } else if (isWin(t, marks[0])) {
         printf("%c GANHOU !!!\n", marks[0]);
     } else {
-        printf("%c PERDEU !!!\n", marks[1]);
+        printf("%c GANHOU !!!\n", marks[1]);
     }
     destroyTicTacToe(t);
 }
