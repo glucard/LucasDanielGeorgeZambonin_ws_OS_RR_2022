@@ -6,6 +6,7 @@
 char marks[2] = {'x', 'o'};
 int turn = 0;
 int finished = 0;
+int is_finished_verified = 1;
 
 
 // strutura a ser usada como forma de passar argumentos para a função player_thread
@@ -52,21 +53,24 @@ void* player_thread(void* v_args){
 
                 pthread_mutex_lock(&lock);
                 play(t, y, x, marks[mark]);
+                is_finished_verified = 0;
                 pthread_mutex_unlock(&lock);
 
                 printf("\n");
-                printTicTacToe(t);
                 turn = !turn;
             }
 
             // sleep com proposito de facilitar o entendimento na execução
         } else {
-            
-            pthread_mutex_lock(&lock);
-            if(someoneWin(t) || isFull(t)) {
-                finished = 1;
+            if (!is_finished_verified){
+                pthread_mutex_lock(&lock);
+                if(someoneWin(t) || isFull(t)) {
+                    finished = 1;
+                }
+                printTicTacToe(t);
+                is_finished_verified = 1;
+                pthread_mutex_unlock(&lock);
             }
-            pthread_mutex_unlock(&lock);
         }
 
         // caso alguem ganhar, set a flag finished em True
@@ -75,7 +79,7 @@ void* player_thread(void* v_args){
         }
     }
     // quando sair do loop principal, print a condição final do jogo
-    if (!finished){
+    if (!someoneWin(t)){
         printf("Deu velha da lancha\n");
     } else if (isWin(t, marks[mark])) {
         printf("%c GANHOU !!!\n", marks[mark]);
@@ -85,7 +89,44 @@ void* player_thread(void* v_args){
 
 }
 
+
+void noThreadPlay(){
+    
+    TicTacToe* t = createTicTacToe();
+    int npt_finished = 0;
+    int x, y;
+    int turn = 0;
+
+    while(!npt_finished){
+        y = rand() % 3;
+        x = rand() % 3;
+        while(!verifyPlay(t, y, x, marks[turn])){
+            y = rand() % 3;
+            x = rand() % 3;
+        }
+        play(t, y, x, marks[turn]);
+        printTicTacToe(t);
+        printf("\n");
+        turn = !turn;
+        if (isFull(t) || someoneWin(t))
+            npt_finished = 1;
+    }
+    if (!someoneWin(t)){
+        printf("Deu velha da lancha\n");
+    } else if (isWin(t, marks[0])) {
+        printf("%c GANHOU !!!\n", marks[0]);
+    } else {
+        printf("%c PERDEU !!!\n", marks[1]);
+    }
+
+    destroyTicTacToe(t);
+    
+}
+
 int main(){
+    clock_t start, end;
+    long double cpu_time_used;
+    start = clock();
 
     if (pthread_mutex_init(&lock, NULL) != 0)
         return 1;
@@ -111,6 +152,12 @@ int main(){
     pthread_join(t_player2, NULL);
     
     destroyTicTacToe(t);
-    
+
+    // noThreadPlay();
+    // for(int i = 0; i < 1000000000; i++);
+    end = clock();
+
+    cpu_time_used = ((long double)(end - start)) / CLOCKS_PER_SEC;
+    printf("Tempo de execução: %Lf\n", cpu_time_used);
     return 0;
 }
