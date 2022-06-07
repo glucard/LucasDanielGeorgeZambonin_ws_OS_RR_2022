@@ -3,7 +3,7 @@ Jogo da velha em thread;
 LINUX
 
 Como fazer download do repositorio:
-- Instale o git;
+- Tenha o git instalado;
 - abra o terminal;
 - digite "git clone https://github.com/glucard/LucasDanielGeorgeZambonin_ws_OS_RR_2022.git" (sem aspas) e presione enter.
 
